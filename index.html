@@ -1213,16 +1213,14 @@ function showElimination(player) {
   if (player.role === "civil") {
     badge.textContent = "Civil";
     badge.className = "role-badge role-civil";
-    $("#elimWord").textContent = `Son mot : ${state.game.civilWord}`;
   } else if (player.role === "undercover") {
     badge.textContent = "Undercover";
     badge.className = "role-badge role-undercover";
-    $("#elimWord").textContent = `Son mot : ${state.game.underWord}`;
   } else {
     badge.textContent = "Mr White";
     badge.className = "role-badge role-mrwhite";
-    $("#elimWord").textContent = "Pas de mot.";
   }
+  $("#elimWord").textContent = "";
 }
 
 function checkVictory() {
@@ -1300,8 +1298,15 @@ function showEnd(result) {
     let badgeClass = p.role === "civil" ? "role-civil"
                    : p.role === "undercover" ? "role-undercover"
                    : "role-mrwhite";
+    let personalWord = p.role === "civil" ? state.game.civilWord
+                     : p.role === "undercover" ? state.game.underWord
+                     : "—";
     row.innerHTML = `
-      <span><b>${escapeHtml(p.name)}</b> ${p.alive ? "" : "<small style=\"opacity:0.6\">(éliminé)</small>"}</span>
+      <span>
+        <b>${escapeHtml(p.name)}</b>
+        ${p.alive ? "" : "<small style=\"opacity:0.6\">(éliminé)</small>"}
+        <div style="font-size:0.8rem; opacity:0.7; margin-top:2px;">Mot : ${escapeHtml(personalWord)}</div>
+      </span>
       <span class="role-badge ${badgeClass}" style="font-size:0.75rem; padding:4px 10px;">${roleLabel}</span>
     `;
     list.appendChild(row);
