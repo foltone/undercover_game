@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1a1033">
+<title>Undercover</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(160deg, #1a1033 0%, #2d1b5e 60%, #4a1f7a 100%);
+    color: #f3e8ff;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  .app {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 20px 18px 28px;
+  }
+  h1 {
+    font-size: 2rem;
+    margin: 0 0 4px;
+    text-align: center;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, #ffd9f7, #c2a3ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 0.85rem;
+    opacity: 0.7;
+    margin: 0 0 22px;
+    letter-spacing: 1px;
+  }
+  .screen { display: none; flex-direction: column; flex: 1; gap: 14px; }
+  .screen.active { display: flex; }
+
+  .card-block {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 16px;
+    padding: 16px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .card-block h2 {
+    margin: 0 0 12px;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    opacity: 0.85;
+  }
+
+  label.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  label.field:last-child { margin-bottom: 0; }
+  label.field span.lbl { font-size: 0.85rem; opacity: 0.85; }
+  input[type="text"], input[type="number"], select, textarea {
+    width: 100%;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 10px;
+    padding: 11px 12px;
+    color: #f3e8ff;
+    font-size: 1rem;
+    font-family: inherit;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #c2a3ff;
+    box-shadow: 0 0 0 2px rgba(194,163,255,0.25);
+  }
+
+  .counter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 10px;
+    padding: 6px;
+  }
+  .counter button {
+    width: 38px; height: 38px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255,255,255,0.08);
+    color: #f3e8ff;
+    font-size: 1.3rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .counter button:active { background: rgba(255,255,255,0.18); }
+  .counter .val { flex: 1; text-align: center; font-size: 1.1rem; font-weight: 600; }
+
+  .toggle-row { display: flex; gap: 8px; }
+  .toggle-row button {
+    flex: 1;
+    padding: 10px 8px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.18);
+    background: rgba(0,0,0,0.25);
+    color: #f3e8ff;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  .toggle-row button.active {
+    background: linear-gradient(135deg, #8b5cf6, #c2a3ff);
+    border-color: transparent;
+    color: #14082b;
+    font-weight: 700;
+  }
+
+  .players-list { display: flex; flex-direction: column; gap: 8px; }
+  .player-row {
+    display: flex; gap: 8px; align-items: center;
+  }
+  .player-row input { flex: 1; }
+  .player-row button.del {
+    width: 38px; height: 38px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,80,80,0.4);
+    background: rgba(255,80,80,0.12);
+    color: #ffb4b4;
+    font-size: 1.1rem;
+    cursor: pointer;
+  }
+
+  button.primary {
+    width: 100%;
+    padding: 15px;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(135deg, #8b5cf6, #ec4899);
+    color: white;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(139,92,246,0.4);
+  }
+  button.primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  button.secondary {
+    width: 100%;
+    padding: 13px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.06);
+    color: #f3e8ff;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
+  button.danger {
+    background: rgba(255,80,80,0.18);
+    border-color: rgba(255,80,80,0.4);
+    color: #ffb4b4;
+  }
+
+  .actions { display: flex; flex-direction: column; gap: 10px; margin-top: auto; padding-top: 14px; }
+  .actions.row { flex-direction: row; }
+  .actions.row > * { flex: 1; }
+
+  /* Reveal screen */
+  .reveal-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    text-align: center;
+  }
+  .reveal-info {
+    font-size: 0.9rem;
+    opacity: 0.75;
+  }
+  .reveal-card {
+    width: 100%;
+    max-width: 320px;
+    aspect-ratio: 3 / 4;
+    perspective: 1200px;
+    cursor: pointer;
+  }
+  .reveal-card-inner {
+    width: 100%; height: 100%;
+    position: relative;
+    transition: transform 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+    transform-style: preserve-3d;
+  }
+  .reveal-card.revealed .reveal-card-inner { transform: rotateY(180deg); }
+  .reveal-face {
+    position: absolute;
+    inset: 0;
+    border-radius: 22px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    text-align: center;
+  }
+  .reveal-back {
+    background: linear-gradient(135deg, #4c1d95, #831843);
+    border: 2px solid rgba(255,255,255,0.15);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  }
+  .reveal-back .glyph {
+    font-size: 4rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #ffd9f7, #c2a3ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 8px;
+  }
+  .reveal-back .name {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    word-break: break-word;
+  }
+  .reveal-back .hint {
+    font-size: 0.85rem;
+    opacity: 0.8;
+  }
+  .reveal-front {
+    background: linear-gradient(135deg, #faf5ff, #fdf2f8);
+    color: #14082b;
+    transform: rotateY(180deg);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  }
+  .reveal-front .role {
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #6d28d9;
+    margin-bottom: 12px;
+    font-weight: 700;
+  }
+  .reveal-front .word {
+    font-size: 2.2rem;
+    font-weight: 800;
+    word-break: break-word;
+    line-height: 1.1;
+  }
+  .reveal-front .mw {
+    font-size: 1.1rem;
+    line-height: 1.4;
+    color: #6d28d9;
+    font-weight: 600;
+  }
+  .reveal-front .player-name {
+    font-size: 0.9rem;
+    opacity: 0.7;
+    margin-top: 12px;
+    color: #6d28d9;
+  }
+
+  /* Game screen */
+  .game-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    opacity: 0.8;
+    padding: 0 4px;
+  }
+  .first-speaker {
+    text-align: center;
+    background: linear-gradient(135deg, rgba(139,92,246,0.25), rgba(236,72,153,0.25));
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 14px;
+    padding: 18px;
+  }
+  .first-speaker .label { font-size: 0.85rem; opacity: 0.85; letter-spacing: 1px; text-transform: uppercase; }
+  .first-speaker .name { font-size: 1.6rem; font-weight: 800; margin-top: 6px; }
+  .alive-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+  }
+  .alive-chip {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 10px 8px;
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+  .alive-chip.dead {
+    opacity: 0.4;
+    text-decoration: line-through;
+  }
+
+  /* Vote screen */
+  .vote-list { display: flex; flex-direction: column; gap: 8px; }
+  .vote-btn {
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.18);
+    background: rgba(255,255,255,0.06);
+    color: #f3e8ff;
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+  }
+  .vote-btn.selected {
+    background: linear-gradient(135deg, #8b5cf6, #ec4899);
+    border-color: transparent;
+  }
+
+  /* Reveal eliminated */
+  .elim-reveal {
+    text-align: center;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+  }
+  .elim-name { font-size: 1.7rem; font-weight: 800; }
+  .role-badge {
+    display: inline-block;
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+  }
+  .role-civil { background: linear-gradient(135deg, #10b981, #34d399); color: #052e1f; }
+  .role-undercover { background: linear-gradient(135deg, #f59e0b, #fbbf24); color: #3a1f00; }
+  .role-mrwhite { background: linear-gradient(135deg, #f3f4f6, #d1d5db); color: #111; }
+
+  /* End screen */
+  .end-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 16px;
+  }
+  .end-title {
+    font-size: 2rem;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, #ffd9f7, #c2a3ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .end-words {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 14px;
+    padding: 14px 18px;
+    width: 100%;
+  }
+  .end-words .row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.95rem; }
+  .end-words .row .lab { opacity: 0.7; }
+  .end-roles { width: 100%; display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+  .end-role-row {
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+  }
+
+  /* Modal */
+  .modal-bg {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: none;
+    align-items: center; justify-content: center;
+    padding: 20px;
+    z-index: 100;
+  }
+  .modal-bg.active { display: flex; }
+  .modal {
+    background: linear-gradient(160deg, #2d1b5e, #4a1f7a);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 18px;
+    padding: 22px;
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .modal h3 { margin: 0; font-size: 1.2rem; }
+  .modal p { margin: 0; line-height: 1.45; opacity: 0.9; }
+  .modal-actions { display: flex; gap: 10px; }
+  .modal-actions > * { flex: 1; }
+
+  .pill-info {
+    background: rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    opacity: 0.9;
+  }
+  .error { color: #ffb4b4; font-size: 0.85rem; min-height: 1em; }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>Undercover</h1>
+  <div class="subtitle" id="phaseLabel">Configuration</div>
+
+  <!-- ========== CONFIG SCREEN ========== -->
+  <section class="screen active" id="screen-config">
+    <div class="card-block">
+      <h2>Joueurs</h2>
+      <div class="players-list" id="playersList"></div>
+      <button class="secondary" id="addPlayerBtn" style="margin-top:10px;">+ Ajouter un joueur</button>
+    </div>
+
+    <div class="card-block">
+      <h2>Rôles</h2>
+      <label class="field">
+        <span class="lbl">Undercovers</span>
+        <div class="counter" data-counter="undercover">
+          <button type="button" data-act="dec">−</button>
+          <div class="val">1</div>
+          <button type="button" data-act="inc">+</button>
+        </div>
+      </label>
+      <label class="field">
+        <span class="lbl">Mr White</span>
+        <div class="counter" data-counter="mrwhite">
+          <button type="button" data-act="dec">−</button>
+          <div class="val">0</div>
+          <button type="button" data-act="inc">+</button>
+        </div>
+      </label>
+      <div class="pill-info" id="rolesSummary">Civils : 0</div>
+    </div>
+
+    <div class="card-block">
+      <h2>Mots</h2>
+      <div class="toggle-row" id="wordModeToggle">
+        <button type="button" class="active" data-mode="random">Aléatoires</button>
+        <button type="button" data-mode="manual">Saisie manuelle</button>
+      </div>
+      <div id="manualWords" style="display:none; margin-top:12px;">
+        <label class="field">
+          <span class="lbl">Mot des Civils</span>
+          <input type="text" id="wordCivil" placeholder="ex : Chien">
+        </label>
+        <label class="field">
+          <span class="lbl">Mot de l'Undercover</span>
+          <input type="text" id="wordUnder" placeholder="ex : Loup">
+        </label>
+      </div>
+    </div>
+
+    <div class="card-block">
+      <h2>Premier joueur à parler</h2>
+      <div class="toggle-row" id="firstSpeakerToggle">
+        <button type="button" class="active" data-mode="random">Aléatoire</button>
+        <button type="button" data-mode="order">Ordre de la liste</button>
+      </div>
+    </div>
+
+    <div class="error" id="configError"></div>
+
+    <div class="actions">
+      <button class="primary" id="startBtn">Lancer la partie</button>
+    </div>
+  </section>
+
+  <!-- ========== REVEAL SCREEN ========== -->
+  <section class="screen" id="screen-reveal">
+    <div class="reveal-wrap">
+      <div class="reveal-info" id="revealCounter">Joueur 1 / X</div>
+      <div class="reveal-card" id="revealCard">
+        <div class="reveal-card-inner">
+          <div class="reveal-face reveal-back">
+            <div class="glyph">?</div>
+            <div class="name" id="revealName">—</div>
+            <div class="hint">Touche pour révéler ton rôle</div>
+          </div>
+          <div class="reveal-face reveal-front" id="revealFront">
+            <div class="role" id="revealRole">—</div>
+            <div class="word" id="revealWord">—</div>
+            <div class="player-name" id="revealNameSmall">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="reveal-info" id="revealHint">Tu ne pourras voir cette carte qu'une seule fois.</div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="revealOkBtn" disabled>OK, passer au suivant</button>
+    </div>
+  </section>
+
+  <!-- ========== GAME / DESCRIBE ========== -->
+  <section class="screen" id="screen-game">
+    <div class="card-block">
+      <h2>Tour <span id="roundNum">1</span></h2>
+      <div class="first-speaker">
+        <div class="label">Premier à parler</div>
+        <div class="name" id="firstSpeakerName">—</div>
+      </div>
+    </div>
+    <div class="card-block">
+      <h2>Joueurs encore en jeu</h2>
+      <div class="alive-list" id="aliveList"></div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="goToVoteBtn">Passer au vote</button>
+      <button class="secondary danger" id="abandonBtn">Abandonner la partie</button>
+    </div>
+  </section>
+
+  <!-- ========== VOTE SCREEN ========== -->
+  <section class="screen" id="screen-vote">
+    <div class="card-block">
+      <h2>Vote</h2>
+      <div class="pill-info">Sélectionnez le joueur que le groupe a décidé d'éliminer.</div>
+      <div class="vote-list" id="voteList" style="margin-top:12px;"></div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="confirmVoteBtn" disabled>Confirmer l'élimination</button>
+      <button class="secondary" id="cancelVoteBtn">Retour</button>
+    </div>
+  </section>
+
+  <!-- ========== ELIMINATED REVEAL ========== -->
+  <section class="screen" id="screen-elim">
+    <div class="elim-reveal">
+      <div class="reveal-info">Éliminé</div>
+      <div class="elim-name" id="elimName">—</div>
+      <div class="role-badge" id="elimRole">—</div>
+      <div id="elimWord" style="opacity:0.85; font-size:1rem;"></div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="elimContinueBtn">Continuer</button>
+    </div>
+  </section>
+
+  <!-- ========== MR WHITE GUESS ========== -->
+  <section class="screen" id="screen-guess">
+    <div class="card-block">
+      <h2>Dernière chance — Mr White</h2>
+      <div class="pill-info"><b id="guessName">—</b>, en tant que Mr White, tu as une chance de deviner le mot des Civils. Si tu trouves, tu gagnes seul !</div>
+      <label class="field" style="margin-top:12px;">
+        <span class="lbl">Ta proposition</span>
+        <input type="text" id="guessInput" placeholder="Le mot des Civils...">
+      </label>
+    </div>
+    <div class="actions">
+      <button class="primary" id="submitGuessBtn">Valider</button>
+    </div>
+  </section>
+
+  <!-- ========== END SCREEN ========== -->
+  <section class="screen" id="screen-end">
+    <div class="end-screen">
+      <div class="end-title" id="endTitle">Fin de partie</div>
+      <div id="endSubtitle" style="opacity:0.85;">—</div>
+      <div class="end-words">
+        <div class="row"><span class="lab">Mot Civils</span><b id="endCivil">—</b></div>
+        <div class="row"><span class="lab">Mot Undercover</span><b id="endUnder">—</b></div>
+      </div>
+      <div class="end-roles" id="endRoles"></div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="restartBtn">Nouvelle partie (mêmes joueurs)</button>
+      <button class="secondary" id="newGameBtn">Reconfigurer</button>
+    </div>
+  </section>
+</div>
+
+<!-- Confirm modal -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h3 id="modalTitle">—</h3>
+    <p id="modalText">—</p>
+    <div class="modal-actions">
+      <button class="secondary" id="modalCancel">Annuler</button>
+      <button class="primary" id="modalOk">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+// ============================================================
+// WORD PAIRS (civil / undercover)
+// ============================================================
+const WORD_PAIRS = [
+  ["Chien", "Loup"],
+  ["Café", "Thé"],
+  ["Voiture", "Moto"],
+  ["Soleil", "Lune"],
+  ["Mer", "Océan"],
+  ["Pizza", "Tarte"],
+  ["Footballeur", "Rugbyman"],
+  ["Train", "Métro"],
+  ["Crayon", "Stylo"],
+  ["Pomme", "Poire"],
+  ["Hiver", "Automne"],
+  ["Plage", "Piscine"],
+  ["Téléphone", "Tablette"],
+  ["Guitare", "Violon"],
+  ["Boulanger", "Pâtissier"],
+  ["Médecin", "Infirmier"],
+  ["Cinéma", "Théâtre"],
+  ["Frites", "Chips"],
+  ["Lait", "Crème"],
+  ["Lion", "Tigre"],
+  ["Avocat", "Notaire"],
+  ["Roi", "Empereur"],
+  ["Ciel", "Espace"],
+  ["Banane", "Mangue"],
+  ["Serpent", "Anguille"],
+  ["Vélo", "Trottinette"],
+  ["Chocolat", "Caramel"],
+  ["Forêt", "Jungle"],
+  ["Livre", "Magazine"],
+  ["Sucre", "Miel"],
+  ["Fromage", "Yaourt"],
+  ["Pluie", "Brouillard"],
+  ["Cheval", "Âne"],
+  ["Bateau", "Sous-marin"],
+  ["Acteur", "Chanteur"],
+  ["Ordinateur", "Console"],
+  ["Camion", "Bus"],
+  ["Riz", "Pâtes"],
+  ["Bière", "Vin"],
+  ["Lac", "Étang"],
+  ["Rose", "Tulipe"],
+  ["Pirate", "Corsaire"],
+  ["Été", "Printemps"],
+  ["Boxeur", "Karatéka"],
+  ["Tomate", "Poivron"],
+  ["Sel", "Poivre"],
+  ["Tour Eiffel", "Statue de la Liberté"],
+  ["Pingouin", "Manchot"],
+  ["Mariage", "Fiançailles"],
+  ["Magicien", "Sorcier"],
+];
+
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  players: [],            // [{id, name}]
+  config: {
+    undercoverCount: 1,
+    mrwhiteCount: 0,
+    wordMode: "random",   // "random" | "manual"
+    manualCivil: "",
+    manualUnder: "",
+    firstSpeakerMode: "random", // "random" | "order"
+  },
+  game: null,             // see startGame()
+};
+
+// ============================================================
+// HELPERS
+// ============================================================
+const $  = (sel) => document.querySelector(sel);
+const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+function uid() { return Math.random().toString(36).slice(2, 9); }
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function showScreen(id) {
+  $$(".screen").forEach(s => s.classList.remove("active"));
+  $("#screen-" + id).classList.add("active");
+  const labels = {
+    config: "Configuration",
+    reveal: "Distribution des cartes",
+    game: "Phase de description",
+    vote: "Vote",
+    elim: "Élimination",
+    guess: "Mr White — Dernière chance",
+    end: "Fin de partie",
+  };
+  $("#phaseLabel").textContent = labels[id] || "";
+}
+
+function openModal({ title, text, okText = "OK", cancelText = "Annuler", onOk, showCancel = true }) {
+  $("#modalTitle").textContent = title;
+  $("#modalText").textContent = text;
+  $("#modalOk").textContent = okText;
+  $("#modalCancel").textContent = cancelText;
+  $("#modalCancel").style.display = showCancel ? "" : "none";
+  $("#modal").classList.add("active");
+  const close = () => $("#modal").classList.remove("active");
+  $("#modalOk").onclick = () => { close(); onOk && onOk(); };
+  $("#modalCancel").onclick = close;
+}
+
+// ============================================================
+// CONFIG SCREEN
+// ============================================================
+function renderPlayers() {
+  const list = $("#playersList");
+  list.innerHTML = "";
+  state.players.forEach((p, idx) => {
+    const row = document.createElement("div");
+    row.className = "player-row";
+    row.innerHTML = `
+      <input type="text" value="${escapeHtml(p.name)}" placeholder="Joueur ${idx + 1}" data-id="${p.id}">
+      <button type="button" class="del" data-id="${p.id}" aria-label="Supprimer">×</button>
+    `;
+    list.appendChild(row);
+  });
+  list.querySelectorAll("input").forEach(inp => {
+    inp.addEventListener("input", (e) => {
+      const id = e.target.dataset.id;
+      const p = state.players.find(x => x.id === id);
+      if (p) p.name = e.target.value;
+      updateRolesSummary();
+    });
+  });
+  list.querySelectorAll("button.del").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const id = e.currentTarget.dataset.id;
+      state.players = state.players.filter(x => x.id !== id);
+      renderPlayers();
+      updateRolesSummary();
+    });
+  });
+  updateRolesSummary();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"})[c]);
+}
+
+function updateRolesSummary() {
+  const total = state.players.length;
+  const u = state.config.undercoverCount;
+  const w = state.config.mrwhiteCount;
+  const c = total - u - w;
+  const el = $("#rolesSummary");
+  if (total === 0) {
+    el.textContent = "Ajoute des joueurs pour commencer.";
+  } else {
+    el.innerHTML = `Civils : <b>${c}</b> · Undercovers : <b>${u}</b> · Mr White : <b>${w}</b> · Total : <b>${total}</b>`;
+  }
+}
+
+function setupCounter(name, min, getMax, getValue, setValue) {
+  const wrap = document.querySelector(`[data-counter="${name}"]`);
+  const valEl = wrap.querySelector(".val");
+  const refresh = () => { valEl.textContent = getValue(); };
+  refresh();
+  wrap.querySelector('[data-act="dec"]').addEventListener("click", () => {
+    const v = getValue();
+    if (v > min) { setValue(v - 1); refresh(); updateRolesSummary(); }
+  });
+  wrap.querySelector('[data-act="inc"]').addEventListener("click", () => {
+    const v = getValue();
+    if (v < getMax()) { setValue(v + 1); refresh(); updateRolesSummary(); }
+  });
+  return refresh;
+}
+
+function setupToggle(selector, current, onChange) {
+  const wrap = $(selector);
+  wrap.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      wrap.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      onChange(btn.dataset.mode);
+    });
+  });
+}
+
+function initConfig() {
+  // Default: 4 players
+  if (state.players.length === 0) {
+    for (let i = 0; i < 4; i++) {
+      state.players.push({ id: uid(), name: "" });
+    }
+  }
+  renderPlayers();
+
+  $("#addPlayerBtn").addEventListener("click", () => {
+    state.players.push({ id: uid(), name: "" });
+    renderPlayers();
+  });
+
+  setupCounter("undercover", 0,
+    () => Math.max(0, state.players.length - state.config.mrwhiteCount - 1),
+    () => state.config.undercoverCount,
+    (v) => state.config.undercoverCount = v
+  );
+  setupCounter("mrwhite", 0,
+    () => Math.max(0, state.players.length - state.config.undercoverCount - 1),
+    () => state.config.mrwhiteCount,
+    (v) => state.config.mrwhiteCount = v
+  );
+
+  setupToggle("#wordModeToggle", "random", (m) => {
+    state.config.wordMode = m;
+    $("#manualWords").style.display = m === "manual" ? "" : "none";
+  });
+  setupToggle("#firstSpeakerToggle", "random", (m) => {
+    state.config.firstSpeakerMode = m;
+  });
+
+  $("#wordCivil").addEventListener("input", e => state.config.manualCivil = e.target.value);
+  $("#wordUnder").addEventListener("input", e => state.config.manualUnder = e.target.value);
+
+  $("#startBtn").addEventListener("click", tryStartGame);
+}
+
+// ============================================================
+// GAME LOGIC
+// ============================================================
+function validateConfig() {
+  const errs = [];
+  const named = state.players.map(p => p.name.trim()).filter(Boolean);
+  if (state.players.length < 3) errs.push("Il faut au moins 3 joueurs.");
+  if (named.length !== state.players.length) errs.push("Tous les joueurs doivent avoir un nom.");
+  const lower = named.map(n => n.toLowerCase());
+  if (new Set(lower).size !== lower.length) errs.push("Les noms doivent être uniques.");
+
+  const total = state.players.length;
+  const u = state.config.undercoverCount;
+  const w = state.config.mrwhiteCount;
+  const c = total - u - w;
+  if (c < 1) errs.push("Il faut au moins 1 Civil.");
+  if (u < 1 && w < 1) errs.push("Il faut au moins un Undercover ou un Mr White.");
+  if (c <= u + w) errs.push("Les Civils doivent être majoritaires (sinon la partie commence déjà perdue).");
+
+  if (state.config.wordMode === "manual") {
+    if (!state.config.manualCivil.trim()) errs.push("Mot des Civils manquant.");
+    if (state.config.manualUnder.trim() === "" && u > 0) errs.push("Mot de l'Undercover manquant.");
+    if (
+      state.config.manualCivil.trim().toLowerCase() ===
+      state.config.manualUnder.trim().toLowerCase() && u > 0
+    ) errs.push("Les deux mots doivent être différents.");
+  }
+  return errs;
+}
+
+function tryStartGame() {
+  const errs = validateConfig();
+  $("#configError").textContent = errs.join(" ");
+  if (errs.length) return;
+  startGame();
+}
+
+function startGame() {
+  // Pick words
+  let civilWord, underWord;
+  if (state.config.wordMode === "manual") {
+    civilWord = state.config.manualCivil.trim();
+    underWord = state.config.manualUnder.trim();
+  } else {
+    const pair = pickRandom(WORD_PAIRS);
+    // Randomize which side is "civil"
+    const flip = Math.random() < 0.5;
+    civilWord = flip ? pair[0] : pair[1];
+    underWord = flip ? pair[1] : pair[0];
+  }
+
+  // Assign roles
+  const total = state.players.length;
+  const u = state.config.undercoverCount;
+  const w = state.config.mrwhiteCount;
+  const roles = [];
+  for (let i = 0; i < u; i++) roles.push("undercover");
+  for (let i = 0; i < w; i++) roles.push("mrwhite");
+  while (roles.length < total) roles.push("civil");
+  const shuffledRoles = shuffle(roles);
+
+  // Map players (preserve player order in state.players for display order option)
+  const assignments = state.players.map((p, i) => ({
+    id: p.id,
+    name: p.name.trim(),
+    role: shuffledRoles[i],
+    alive: true,
+    seenCard: false,
+  }));
+
+  // Reveal order: shuffle so the order in which players take the phone isn't the list order
+  const revealOrder = shuffle(assignments.map(a => a.id));
+
+  state.game = {
+    civilWord,
+    underWord,
+    players: assignments,
+    revealOrder,
+    revealIdx: 0,
+    round: 1,
+    selectedVote: null,
+    pendingMrWhite: null, // player object if Mr White was just eliminated
+  };
+
+  showScreen("reveal");
+  updateRevealCard();
+}
+
+// ============================================================
+// REVEAL PHASE
+// ============================================================
+function currentRevealPlayer() {
+  const id = state.game.revealOrder[state.game.revealIdx];
+  return state.game.players.find(p => p.id === id);
+}
+
+function updateRevealCard() {
+  const g = state.game;
+  const p = currentRevealPlayer();
+  $("#revealCounter").textContent = `Joueur ${g.revealIdx + 1} / ${g.revealOrder.length}`;
+  $("#revealName").textContent = p.name;
+
+  // Reset card to back face
+  const card = $("#revealCard");
+  card.classList.remove("revealed");
+  $("#revealOkBtn").disabled = true;
+  $("#revealHint").textContent = "Tu ne pourras voir cette carte qu'une seule fois.";
+
+  // Pre-fill content (hidden until flip)
+  const front = $("#revealFront");
+  front.innerHTML = "";
+  if (p.role === "civil") {
+    front.innerHTML = `
+      <div class="role">Civil</div>
+      <div class="word">${escapeHtml(g.civilWord)}</div>
+      <div class="player-name">${escapeHtml(p.name)}</div>
+    `;
+  } else if (p.role === "undercover") {
+    front.innerHTML = `
+      <div class="role">Undercover</div>
+      <div class="word">${escapeHtml(g.underWord)}</div>
+      <div class="player-name">${escapeHtml(p.name)}</div>
+    `;
+  } else {
+    front.innerHTML = `
+      <div class="role">Mr White</div>
+      <div class="mw">Tu n'as pas de mot.<br>Bluffe et essaie de deviner !</div>
+      <div class="player-name">${escapeHtml(p.name)}</div>
+    `;
+  }
+}
+
+function setupRevealHandlers() {
+  $("#revealCard").addEventListener("click", () => {
+    const card = $("#revealCard");
+    if (!card.classList.contains("revealed")) {
+      card.classList.add("revealed");
+      const p = currentRevealPlayer();
+      p.seenCard = true;
+      $("#revealOkBtn").disabled = false;
+      $("#revealHint").textContent = "Mémorise ton rôle, puis appuie sur OK.";
+    }
+  });
+
+  $("#revealOkBtn").addEventListener("click", () => {
+    const g = state.game;
+    g.revealIdx++;
+    if (g.revealIdx >= g.revealOrder.length) {
+      enterDescribePhase();
+    } else {
+      updateRevealCard();
+    }
+  });
+}
+
+// ============================================================
+// DESCRIBE PHASE
+// ============================================================
+function enterDescribePhase() {
+  showScreen("game");
+  $("#roundNum").textContent = state.game.round;
+
+  const alive = state.game.players.filter(p => p.alive);
+  let firstSpeaker;
+  if (state.config.firstSpeakerMode === "order") {
+    // First alive in the original list order
+    firstSpeaker = state.game.players.find(p => p.alive);
+  } else {
+    firstSpeaker = pickRandom(alive);
+  }
+  $("#firstSpeakerName").textContent = firstSpeaker.name;
+
+  const list = $("#aliveList");
+  list.innerHTML = "";
+  state.game.players.forEach(p => {
+    const chip = document.createElement("div");
+    chip.className = "alive-chip" + (p.alive ? "" : " dead");
+    chip.textContent = p.name;
+    list.appendChild(chip);
+  });
+}
+
+// ============================================================
+// VOTE PHASE
+// ============================================================
+function enterVotePhase() {
+  state.game.selectedVote = null;
+  showScreen("vote");
+  const list = $("#voteList");
+  list.innerHTML = "";
+  state.game.players.filter(p => p.alive).forEach(p => {
+    const btn = document.createElement("button");
+    btn.className = "vote-btn";
+    btn.textContent = p.name;
+    btn.dataset.id = p.id;
+    btn.addEventListener("click", () => {
+      list.querySelectorAll(".vote-btn").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      state.game.selectedVote = p.id;
+      $("#confirmVoteBtn").disabled = false;
+    });
+    list.appendChild(btn);
+  });
+  $("#confirmVoteBtn").disabled = true;
+}
+
+function confirmVote() {
+  const g = state.game;
+  if (!g.selectedVote) return;
+  const target = g.players.find(p => p.id === g.selectedVote);
+  if (!target) return;
+
+  if (target.role === "mrwhite") {
+    // Mr White gets a chance to guess BEFORE being eliminated
+    g.pendingMrWhite = target;
+    showScreen("guess");
+    $("#guessName").textContent = target.name;
+    $("#guessInput").value = "";
+    setTimeout(() => $("#guessInput").focus(), 100);
+  } else {
+    target.alive = false;
+    showElimination(target);
+  }
+}
+
+function showElimination(player) {
+  showScreen("elim");
+  $("#elimName").textContent = player.name;
+  const badge = $("#elimRole");
+  if (player.role === "civil") {
+    badge.textContent = "Civil";
+    badge.className = "role-badge role-civil";
+    $("#elimWord").textContent = `Son mot : ${state.game.civilWord}`;
+  } else if (player.role === "undercover") {
+    badge.textContent = "Undercover";
+    badge.className = "role-badge role-undercover";
+    $("#elimWord").textContent = `Son mot : ${state.game.underWord}`;
+  } else {
+    badge.textContent = "Mr White";
+    badge.className = "role-badge role-mrwhite";
+    $("#elimWord").textContent = "Pas de mot.";
+  }
+}
+
+function checkVictory() {
+  const g = state.game;
+  const alive = g.players.filter(p => p.alive);
+  const aliveCivils = alive.filter(p => p.role === "civil").length;
+  const aliveUnder  = alive.filter(p => p.role === "undercover").length;
+  const aliveMW     = alive.filter(p => p.role === "mrwhite").length;
+  const aliveBad    = aliveUnder + aliveMW;
+
+  if (aliveBad === 0) {
+    return { winner: "civil", title: "Victoire des Civils !", subtitle: "Tous les imposteurs ont été démasqués." };
+  }
+  if (aliveCivils <= aliveBad) {
+    if (aliveUnder > 0 && aliveMW > 0) {
+      return { winner: "imposters", title: "Victoire des Imposteurs !", subtitle: "Undercovers et Mr White l'emportent." };
+    }
+    if (aliveUnder > 0) {
+      return { winner: "undercover", title: "Victoire des Undercovers !", subtitle: "Ils sont aussi nombreux que les Civils." };
+    }
+    return { winner: "mrwhite", title: "Victoire de Mr White !", subtitle: "Mr White est resté en vie jusqu'au bout." };
+  }
+  return null;
+}
+
+function continueAfterElim() {
+  const result = checkVictory();
+  if (result) {
+    showEnd(result);
+  } else {
+    state.game.round++;
+    enterDescribePhase();
+  }
+}
+
+// ============================================================
+// MR WHITE GUESS
+// ============================================================
+function submitGuess() {
+  const g = state.game;
+  const guess = $("#guessInput").value.trim().toLowerCase();
+  const target = g.civilWord.trim().toLowerCase();
+  const player = g.pendingMrWhite;
+  if (guess && guess === target) {
+    showEnd({
+      winner: "mrwhite-solo",
+      title: "Mr White a deviné !",
+      subtitle: `${player.name} a trouvé le mot et gagne seul.`,
+    });
+  } else {
+    player.alive = false;
+    g.pendingMrWhite = null;
+    showElimination(player);
+  }
+}
+
+// ============================================================
+// END SCREEN
+// ============================================================
+function showEnd(result) {
+  showScreen("end");
+  $("#endTitle").textContent = result.title;
+  $("#endSubtitle").textContent = result.subtitle;
+  $("#endCivil").textContent = state.game.civilWord;
+  $("#endUnder").textContent = state.game.underWord || "—";
+
+  const list = $("#endRoles");
+  list.innerHTML = "";
+  state.game.players.forEach(p => {
+    const row = document.createElement("div");
+    row.className = "end-role-row";
+    let roleLabel = p.role === "civil" ? "Civil"
+                  : p.role === "undercover" ? "Undercover"
+                  : "Mr White";
+    let badgeClass = p.role === "civil" ? "role-civil"
+                   : p.role === "undercover" ? "role-undercover"
+                   : "role-mrwhite";
+    row.innerHTML = `
+      <span><b>${escapeHtml(p.name)}</b> ${p.alive ? "" : "<small style=\"opacity:0.6\">(éliminé)</small>"}</span>
+      <span class="role-badge ${badgeClass}" style="font-size:0.75rem; padding:4px 10px;">${roleLabel}</span>
+    `;
+    list.appendChild(row);
+  });
+}
+
+// ============================================================
+// RESET / NAVIGATION
+// ============================================================
+function resetGameKeepingPlayers() {
+  state.players.forEach(p => { /* keep names */ });
+  state.game = null;
+  // Re-validate counts in case they were edited
+  $("#configError").textContent = "";
+  tryStartGame();
+}
+
+function backToConfig() {
+  state.game = null;
+  showScreen("config");
+  $("#configError").textContent = "";
+  updateRolesSummary();
+}
+
+// ============================================================
+// WIRE UP
+// ============================================================
+function init() {
+  initConfig();
+  setupRevealHandlers();
+
+  $("#goToVoteBtn").addEventListener("click", enterVotePhase);
+  $("#abandonBtn").addEventListener("click", () => {
+    openModal({
+      title: "Abandonner la partie ?",
+      text: "Tu vas retourner à l'écran de configuration. Tous les rôles distribués seront perdus.",
+      okText: "Abandonner",
+      onOk: backToConfig,
+    });
+  });
+
+  $("#confirmVoteBtn").addEventListener("click", () => {
+    const g = state.game;
+    const target = g.players.find(p => p.id === g.selectedVote);
+    if (!target) return;
+    openModal({
+      title: "Confirmer l'élimination",
+      text: `Le groupe élimine ${target.name} ?`,
+      okText: "Confirmer",
+      onOk: confirmVote,
+    });
+  });
+  $("#cancelVoteBtn").addEventListener("click", enterDescribePhase);
+
+  $("#elimContinueBtn").addEventListener("click", continueAfterElim);
+  $("#submitGuessBtn").addEventListener("click", submitGuess);
+
+  $("#restartBtn").addEventListener("click", resetGameKeepingPlayers);
+  $("#newGameBtn").addEventListener("click", backToConfig);
+}
+
+document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>
