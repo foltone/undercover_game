@@ -818,6 +818,7 @@ const state = {
     firstSpeakerMode: "random", // "random" | "order"
   },
   game: null,             // see startGame()
+  usedPairIndices: new Set(), // tracks bank pairs already used in this session
 };
 
 // ============================================================
@@ -1025,7 +1026,18 @@ function startGame() {
     civilWord = state.config.manualCivil.trim();
     underWord = state.config.manualUnder.trim();
   } else {
-    const pair = pickRandom(WORD_PAIRS);
+    // Avoid drawing a pair already used during this session.
+    // If every pair has been used, reset the pool so we never run out.
+    if (state.usedPairIndices.size >= WORD_PAIRS.length) {
+      state.usedPairIndices.clear();
+    }
+    const available = [];
+    for (let i = 0; i < WORD_PAIRS.length; i++) {
+      if (!state.usedPairIndices.has(i)) available.push(i);
+    }
+    const idx = available[Math.floor(Math.random() * available.length)];
+    state.usedPairIndices.add(idx);
+    const pair = WORD_PAIRS[idx];
     // Randomize which side is "civil"
     const flip = Math.random() < 0.5;
     civilWord = flip ? pair[0] : pair[1];
@@ -1326,6 +1338,7 @@ function resetGameKeepingPlayers() {
 
 function backToConfig() {
   state.game = null;
+  state.usedPairIndices.clear();
   showScreen("config");
   $("#configError").textContent = "";
   updateRolesSummary();
